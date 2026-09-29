@@ -228,7 +228,14 @@ nav.scrolled {
 .hero-slider {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  /* padding-top percentage trick instead of aspect-ratio: the modern
+     aspect-ratio property has patchy/buggy support on some budget-Android
+     browsers (notably MIUI/Mi Browser), where it can compute the box
+     height wrong and make object-fit:cover crop far more than it should.
+     padding-top:% has worked identically in every browser since the
+     early 2000s because percentage padding is always resolved against
+     the containing block's WIDTH, even for top/bottom - that's the trick. */
+  padding-top: 56.25%; /* 9/16 */
   overflow: hidden;
   background: var(--bg-alt);
   direction: ltr; /* always LTR regardless of page language - it's an
@@ -241,9 +248,15 @@ nav.scrolled {
 }
 .hero-slider .slider-track.dragging { transition: none; }
 .hero-slider .slider-track {
+  position: absolute; inset: 0; /* fills the padding-top box above */
   display: flex; width: 100%; height: 100%;
   transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1);
-  will-change: transform;
+  /* will-change:transform removed - on some budget-Android GPU/driver
+     combos (Mali GPUs common in this price range) it can force a
+     compositing layer that tears/seams at its edge during the slide
+     transition, which matches the light vertical strip in the
+     screenshot. Modern browsers animate transform efficiently without
+     this hint; it's not worth the risk on hardware we can't test on. */
 }
 .hero-slider .slide {
   flex: 0 0 100%; width: 100%; min-width: 100%; height: 100%;
